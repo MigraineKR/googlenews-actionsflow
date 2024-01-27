@@ -4,7 +4,8 @@ on:
     url: "https://news.google.com/rss/search?q=%ED%8E%B8%EB%91%90%ED%86%B5&hl=ko&gl=KR&ceid=KR:ko"
 
 jobs:
-  notifyDiscord:
+  discord:
+    name: Send a message to discord
     runs-on: ubuntu-latest
     name: Notify Discord
     steps:
@@ -13,7 +14,7 @@ jobs:
         run: |
           echo "::set-output name=cleaned_title::$(echo '${{ on.rss.outputs.title }}' | sed 's/<[^>]*>//g' | html_entity_decode)"
           echo "::set-output name=cleaned_description::$(echo '${{ on.rss.outputs.content }}' | sed 's/<[^>]*>//g' | html_entity_decode)"
-       - name: Discord notification
+      - name: Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_NEWS }}
           DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME_NEWS }}
