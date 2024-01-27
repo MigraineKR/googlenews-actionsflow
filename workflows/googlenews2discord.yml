@@ -1,0 +1,32 @@
+name: Google News to Discord
+on:
+  rss:
+    url: "https://news.google.com/rss/search?q=%ED%8E%B8%EB%91%90%ED%86%B5&hl=ko&gl=KR&ceid=KR:ko"
+
+jobs:
+  discord:
+    runs-on: ubuntu-latest
+    name: Send a message to discord
+    steps:
+      - name: Process RSS Content
+        id: process_rss
+        run: |
+          title="${{ steps.trigger.outputs.title }}"
+          description="${{ steps.trigger.outputs.description }}"
+          link="${{ steps.trigger.outputs.link }}"
+          cleaned_title=$(echo "$title" | sed 's/<[^>]*>//g')
+          cleaned_description=$(echo "$description" | sed 's/<[^>]*>//g')
+          escaped_title=$(echo "$cleaned_title" | sed "s/'/\\\'/g" | sed 's/"/\\"/g')
+          escaped_description=$(echo "$cleaned_description" | sed "s/'/\\\'/g" | sed 's/"/\\"/g')
+          escaped_link=$(echo "$link" | sed "s/'/\\\'/g" | sed 's/"/\\"/g')
+          echo "::set-output name=escaped_title::$escaped_title"
+          echo "::set-output name=escaped_description::$escaped_description"
+          echo "::set-output name=escaped_link::$escaped_link"
+      - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_NEWS }}
+          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME_NEWS }}
+          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR_NEWS }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: "'구글 뉴스 - 편두통'\n'**${{ steps.process_rss.outputs.escaped_title }}**'\n'${{ steps.process_rss.outputs.escaped_link }}"
