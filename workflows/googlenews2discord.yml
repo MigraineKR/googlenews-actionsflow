@@ -13,10 +13,11 @@ jobs:
         run: |
           echo "::set-output name=cleaned_title::$(echo '${{ on.rss.outputs.title }}' | sed 's/<[^>]*>//g' | html_entity_decode)"
           echo "::set-output name=cleaned_description::$(echo '${{ on.rss.outputs.content }}' | sed 's/<[^>]*>//g' | html_entity_decode)"
-      - name: Send to Discord
-        uses: rjstone/discord-webhook-notify@v1.0.3
+       - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_NEWS }}
+          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME_NEWS }}
+          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR_NEWS }}
+        uses: Ilshidur/action-discord@master
         with:
-          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: "Google News"
-          avatar_url: "https://gallery.migraine.kr/media/original/news/googlenews.png"
-          message: "`구글 뉴스 - 편두통`\n**${{steps.process_rss.outputs.cleaned_title}}**\n${{on.rss.outputs.link}}"
+          args: "`구글 뉴스 - 편두통`\n**${{steps.process_rss.outputs.cleaned_title}}**\n${{on.rss.outputs.link}}"
