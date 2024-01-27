@@ -22,11 +22,13 @@ jobs:
           echo "::set-output name=escaped_title::$escaped_title"
           echo "::set-output name=escaped_description::$escaped_description"
           echo "::set-output name=escaped_link::$escaped_link"
-      - name: Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_NEWS }}
-          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME_NEWS }}
-          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR_NEWS }}
-        uses: Ilshidur/action-discord@master
-        with:
-          args: "`구글 뉴스 - 편두통`'\n'**${{ steps.process_rss.outputs.escaped_title }}**'\n'${{ steps.process_rss.outputs.escaped_link }}"
+
+      - name: Send Discord notification
+        run: |
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK_NEWS }} \
+          -H "Content-Type: application/json" \
+          -d '{
+            "username": "${{ secrets.DISCORD_USERNAME_NEWS }}",
+            "avatar_url": "${{ secrets.DISCORD_AVATAR_NEWS }}",
+            "content": "**${{ steps.process_rss.outputs.escaped_title }}**\n\n>>> ${{ steps.process_rss.outputs.escaped_description }}\n${{ steps.process_rss.outputs.escaped_link }}"
+          }'
