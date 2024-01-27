@@ -1,0 +1,22 @@
+name: Google News to Discord
+on:
+  rss:
+    url: "https://news.google.com/rss/search?q=%ED%8E%B8%EB%91%90%ED%86%B5&hl=ko&gl=KR&ceid=KR:ko"
+
+jobs:
+  notifyDiscord:
+    runs-on: ubuntu-latest
+    name: Notify Discord
+    steps:
+      - name: Process RSS Content
+        id: process_rss
+        run: |
+          echo "::set-output name=cleaned_title::$(echo '${{ on.rss.outputs.title }}' | sed 's/<[^>]*>//g' | html_entity_decode)"
+          echo "::set-output name=cleaned_description::$(echo '${{ on.rss.outputs.content }}' | sed 's/<[^>]*>//g' | html_entity_decode)"
+      - name: Send to Discord
+        uses: rjstone/discord-webhook-notify@v1.0.3
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: "Google News"
+          avatar_url: "https://gallery.migraine.kr/media/original/news/googlenews.png"
+          message: "`구글 뉴스 - 편두통`\n**${{steps.process_rss.outputs.cleaned_title}}**\n${{on.rss.outputs.link}}"
