@@ -8,21 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Send a message to discord
     steps:
-      - name: Process RSS Content
-        id: process_rss
-        run: |
-          title="${{ steps.trigger.outputs.title }}"
-          description="${{ steps.trigger.outputs.description }}"
-          link="${{ steps.trigger.outputs.link }}"
-          cleaned_title=$(echo "$title" | sed 's/<[^>]*>//g')
-          cleaned_description=$(echo "$description" | sed 's/<[^>]*>//g')
-          escaped_title=$(echo "$cleaned_title" | sed "s/'/\\\'/g" | sed 's/"/\\"/g')
-          escaped_description=$(echo "$cleaned_description" | sed "s/'/\\\'/g" | sed 's/"/\\"/g')
-          escaped_link=$(echo "$link" | sed "s/'/\\\'/g" | sed 's/"/\\"/g')
-          echo "::set-output name=escaped_title::$escaped_title"
-          echo "::set-output name=escaped_description::$escaped_description"
-          echo "::set-output name=escaped_link::$escaped_link"
-
       - name: Send Discord notification
         run: |
           curl -X POST ${{ secrets.DISCORD_WEBHOOK_NEWS }} \
@@ -30,5 +15,5 @@ jobs:
           -d '{
             "username": "${{ secrets.DISCORD_USERNAME_NEWS }}",
             "avatar_url": "${{ secrets.DISCORD_AVATAR_NEWS }}",
-            "content": "**${{ steps.process_rss.outputs.escaped_title }}**\n\n>>> ${{ steps.process_rss.outputs.escaped_description }}\n${{ steps.process_rss.outputs.escaped_link }}"
+            "content": "**${{ on.rss.outputs.title }}**\n${{ on.rss.outputs.link }}\n\n>>> ${{ on.rss.outputs.contentSnippet }}"
           }'
